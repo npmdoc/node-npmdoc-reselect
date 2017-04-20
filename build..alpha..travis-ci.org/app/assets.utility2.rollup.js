@@ -12442,6 +12442,20 @@ return Utf8ArrayToStr(bff);
             return local.dbTableTravisOrg;
         };
 
+        local.dbTableTravisOrgCrudGetManyByQuery = function (options) {
+        /*
+         * this function will query dbTableTravisOrg
+         */
+            options = local.objectSetDefault(options, { githubOrg: local.env.GITHUB_ORG });
+            options = local.objectSetDefault(options, {
+                query: { buildStartedAt: { $not: { $gt: new Date(Date.now() - (
+                    Number(options.olderThanLast) || 0
+                )).toISOString() } } }
+            }, 2);
+            console.error('dbTableTravisOrgCrudGetManyByQuery - ' + JSON.stringify(options));
+            return local.dbTableTravisOrg.crudGetManyByQuery(options);
+        };
+
         local.dbTableTravisOrgUpdate = function (options, onError) {
         /*
          * this function will update dbTableTravisOrg with active, public repos
@@ -15633,10 +15647,12 @@ instruction\n\
             }, local.exit);
             return;
         case 'dbTableTravisOrgCrudGetManyByQuery':
-            local.dbTableTravisOrgCreate(JSON.parse(process.argv[3]), function (error, data) {
+            local.dbTableTravisOrgCreate(JSON.parse(process.argv[3] || '{}'), function (error) {
                 // validate no error occurred
                 local.assert(!error, error);
-                console.log(data.crudGetManyByQuery(JSON.parse(process.argv[3]))
+                console.log(local.dbTableTravisOrgCrudGetManyByQuery(
+                    JSON.parse(process.argv[3] || '{}')
+                )
                     .map(function (element) {
                         return element._id;
                     })
@@ -15645,7 +15661,7 @@ instruction\n\
             return;
         case 'dbTableTravisOrgUpdate':
             local.dbTableTravisOrgUpdate(
-                JSON.parse(process.argv[3]),
+                JSON.parse(process.argv[3] || '{}'),
                 local.onErrorThrow
             );
             return;
